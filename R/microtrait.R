@@ -196,9 +196,9 @@ combine.results <- function(rds_files, ids = NULL, type, ncores = 1) {
   if (is.null(ids)) {
     ids = sub("\\..*", "", sub(".rds", "", basename(rds_files)), perl = T)
   }
-  cl <- parallel::makeCluster(ncores)
+  cl <- parallel::makeCluster(ncores, outfile = "")
   doParallel::registerDoParallel(cl)
-  results_rowbinded = foreach(i = 1:length(rds_files), .packages = c("dplyr", "tibble"), .export = "fetch.results", .combine = "rbind") %dopar% {
+  results_rowbinded = foreach(i = 1:length(rds_files), .packages = c("dplyr", "tibble"), .export = c("fetch.results", "hmms_fromrules"), .combine = "rbind") %dopar% {
     fetch.results(rds_files[i], ids[i], type = type)
   }
   results_rowbinded = results_rowbinded %>% tibble::as_tibble()
@@ -256,20 +256,36 @@ fetch.results <- function(rds_file, id, type) {
   }
   # the returned variable is name growthrate but it is not a rate, it is mingentime in hours
   if(type == "mingentime") {
-    result = data.frame(`microtrait_trait-name` = "mingentime",
-                        `microtrait_trait-value` = temp$growthrate_d,
+    val = temp$growthrate_d
+    if(length(val) == 0) {
+       result = data.frame(`microtrait_trait-name` = character(), `microtrait_trait-value` = numeric(), check.names = F) %>% tibble::as_tibble()
+    } else {
+       result = data.frame(`microtrait_trait-name` = "mingentime",
+                        `microtrait_trait-value` = val,
                         check.names = F) %>% tibble::as_tibble()
+    }
   }
   if(type == "optimumT") {
-    result = data.frame(`microtrait_trait-name` = "optimumT",
-                        `microtrait_trait-value` = temp$ogt,
+    val = temp$ogt
+    if(length(val) == 0) {
+       result = data.frame(`microtrait_trait-name` = character(), `microtrait_trait-value` = numeric(), check.names = F) %>% tibble::as_tibble()
+    } else {
+       result = data.frame(`microtrait_trait-name` = "optimumT",
+                        `microtrait_trait-value` = val,
                         check.names = F) %>% tibble::as_tibble()
+    }
   }
   if(type == "genome_length") {
-    result = data.frame(`microtrait_trait-name` = "genome_length",
-                        `microtrait_trait-value` = temp$genome_length,
+    val = temp$genome_length
+    if(length(val) == 0) {
+       result = data.frame(`microtrait_trait-name` = character(), `microtrait_trait-value` = numeric(), check.names = F) %>% tibble::as_tibble()
+    } else {
+       result = data.frame(`microtrait_trait-name` = "genome_length",
+                        `microtrait_trait-value` = val,
                         check.names = F) %>% tibble::as_tibble()
+    }
   }
+  if(nrow(result) == 0) return(result)
   result = result %>%
     tibble::add_column(id = as.character(id)) %>%
     dplyr::select(id, everything()) %>% as.data.frame
