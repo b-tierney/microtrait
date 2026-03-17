@@ -31,11 +31,10 @@ requirements:
     - r-fs
     - r-futile.logger
     - r-ggplot2
-    - r-grodon
     - r-gtools
-    - r-kmed
     - r-lazyeval
     - r-magrittr
+    - r-remotes
     - r-nlme
     - r-pheatmap
     - r-readr

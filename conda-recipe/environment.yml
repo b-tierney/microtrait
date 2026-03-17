@@ -2,7 +2,6 @@ name: microtrait
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
   - r-base
   - bioconductor-biostrings
@@ -18,11 +17,10 @@ dependencies:
   - r-fs
   - r-futile.logger
   - r-ggplot2
-  - r-grodon
   - r-gtools
-  - r-kmed
   - r-lazyeval
   - r-magrittr
+  - r-remotes
   - r-nlme
   - r-pheatmap
   - r-readr
