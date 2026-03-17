@@ -1,3 +1,4 @@
+# NOTE: This file is a conda-build recipe. Use conda-recipe/environment.yml with mamba/conda env create.
 {% set version = "1.0.0" %}
 
 package:
