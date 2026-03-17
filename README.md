@@ -17,6 +17,13 @@ The genome inferred traits represented by *microTrait* are summarized in the fig
 
 The following binaries should be in your PATH so that they can be accessed regardless of location.
 
+Install them with mamba (single command):
+
+```bash
+mamba install -c conda-forge -c bioconda 'hmmer>=3.1b2' 'prodigal>=2.6.3' 'infernal=1.1.2' 'trnascan-se=2.0.0' 'bedtools>=2.27'
+```
+
+
 * **[HMMER](http://hmmer.org/) (>= v3.1b2)**
 * **[Prodigal](https://github.com/hyattpd/Prodigal) (>= v2.6.3)**
 
