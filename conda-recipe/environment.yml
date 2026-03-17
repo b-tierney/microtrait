@@ -1,0 +1,39 @@
+name: microtrait
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-base
+  - bioconductor-biostrings
+  - r-r.utils
+  - r-rcolorbrewer
+  - r-ape
+  - r-assertthat
+  - r-checkmate
+  - r-corrplot
+  - r-doparallel
+  - r-dplyr
+  - r-foreach
+  - r-fs
+  - r-futile.logger
+  - r-ggplot2
+  - r-grodon
+  - r-gtools
+  - r-kmed
+  - r-lazyeval
+  - r-magrittr
+  - r-nlme
+  - r-pheatmap
+  - r-readr
+  - r-seqinr
+  - r-stringr
+  - r-tibble
+  - r-tictoc
+  - r-tidyr
+  - r-vegan
+  - hmmer
+  - prodigal
+  - infernal
+  - trnascan-se
+  - bedtools

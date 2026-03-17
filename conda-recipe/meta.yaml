@@ -1,0 +1,70 @@
+# NOTE: This file is a conda-build recipe. Use conda-recipe/environment.yml with mamba/conda env create.
+{% set version = "1.0.0" %}
+
+package:
+  name: r-microtrait
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  noarch: generic
+  number: 0
+  script: "{{ R }} CMD INSTALL --build ."
+
+requirements:
+  host:
+    - r-base
+  run:
+    - r-base
+    - bioconductor-biostrings
+    - r-r.utils
+    - r-rcolorbrewer
+    - r-ape
+    - r-assertthat
+    - r-checkmate
+    - r-corrplot
+    - r-doparallel
+    - r-dplyr
+    - r-foreach
+    - r-fs
+    - r-futile.logger
+    - r-ggplot2
+    - r-grodon
+    - r-gtools
+    - r-kmed
+    - r-lazyeval
+    - r-magrittr
+    - r-nlme
+    - r-pheatmap
+    - r-readr
+    - r-seqinr
+    - r-stringr
+    - r-tibble
+    - r-tictoc
+    - r-tidyr
+    - r-vegan
+    - hmmer
+    - prodigal
+    - infernal
+    - trnascan-se
+    - bedtools
+
+test:
+  commands:
+    - $R -e "library('microtrait')"
+
+about:
+  home: https://github.com/ukaraoz/microtrait
+  summary: Extract environmental fitness traits from microbial genomes.
+  description: |
+    microTrait is an R package that predicts microbial fitness traits from
+    genome sequences using profile HMMs and rule-based mappings.
+  doc_url: https://github.com/ukaraoz/microtrait
+  license: MIT
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - ukaraoz
