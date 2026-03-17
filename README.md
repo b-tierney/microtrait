@@ -80,7 +80,7 @@ Next install R package dependencies for *microTrait*:
 Now install *microTrait* with [devtools](https://github.com/r-lib/devtools):
 
 ```{r tidy = FALSE}
-devtools::install_github("ukaraoz/microtrait")
+devtools::install_github("b-tierney/microtrait")
 ```
 
 ### 5. <a name="setup"></a> Setup of HMM database:
