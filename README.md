@@ -11,110 +11,62 @@ The genome inferred traits represented by *microTrait* are summarized in the fig
 
 ## Installation
 
-*microTrait* has the following software and data dependencies.
-
-### 1. Software dependencies
-
-The following binaries should be in your PATH so that they can be accessed regardless of location.
-
-Install them with mamba (single command):
+The old install instructions were trying to assemble the environment by hand. The simplest working path is now:
 
 ```bash
-mamba install -c conda-forge -c bioconda 'hmmer>=3.1b2' 'prodigal>=2.6.3' 'infernal=1.1.2' 'trnascan-se=2.0.0' 'bedtools>=2.27'
+mamba env create -f environment.yml
+conda activate microtrait
+./scripts/setup_conda.sh
 ```
 
+That is the whole setup. After `scripts/setup_conda.sh` finishes, it has already:
 
-* **[HMMER](http://hmmer.org/) (>= v3.1b2)**
-* **[Prodigal](https://github.com/hyattpd/Prodigal) (>= v2.6.3)**
+1. installed the Conda-managed system tools (`hmmer`, `prodigal`, `infernal`, `trnascan-se`, `bedtools`),
+2. installed the R dependencies needed by the package,
+3. installed the local `microtrait` package into the active environment,
+4. downloaded and pressed the HMM databases with `microtrait::prep.hmmmodels()`, and
+5. run a small end-to-end smoke test with an example genome from this repository.
 
-The following are required for calculating features used in calculating Optimal Growth Temperatures based on regression model from [Sauer (2009)](https://doi.org/10.1093/bioinformatics/btz059) based on genomic, ORF, protein and tRNA features.
+### What the Conda environment contains
 
-* **[Infernal](http://eddylab.org/infernal/infernal-1.1.2.tar.gz) (= v1.1.2)**
-* **[tRNAscan-SE](http://trna.ucsc.edu/software/trnascan-se-2.0.0.tar.gz) (= v2.0.0)**
-* **[bedtools](https://github.com/arq5x/bedtools2/releases/download/v2.27.1/bedtools-2.27.1.tar.gz) (>= v2.27)**
+The root `environment.yml` is the canonical environment for this repository. It includes:
 
-### 2. Data dependencies
+- R and the Conda-available R/Bioconductor packages used by the code (including `seqinr`, which `extract.traits()` uses for FASTA parsing and genome length calculation),
+- the external binaries called from `microtrait` (`hmmsearch`, `hmmpress`, `prodigal`, `cmsearch`, `tRNAscan-SE`, `bedtools`), and
+- `git`/`curl` so the setup script can install the one GitHub-only R dependency (`gRodon`).
 
-* **[microtrait-hmm](https://github.com/ukaraoz/microtrait-hmm)**: gene level profile-HMM database underlying microTrait framework
-* **[dbCAN-HMMdb](http://bcb.unl.edu/dbCAN2/download/Databases/)**: domain level profile-HMM database for Carbohydrate-active enzymes.
+### Why there is still a setup script
 
-See setup section below for deployment of these databases after installation.
+Two runtime dependencies are not handled cleanly as Conda packages here:
 
-### 3. R package dependencies
+- `gRodon` is installed from GitHub,
+- `kmed` is installed from CRAN.
 
-The developmental version of *microtrait* can be installed using the [devtools](https://cran.r-project.org/web/packages/devtools/index.html) package. First install and load [devtools](https://cran.r-project.org/web/packages/devtools/index.html):
+Putting those last two steps in `scripts/setup_conda.sh` keeps the user-facing workflow to three commands instead of a long manual checklist.
 
-```{r tidy = FALSE}
-install.packages("devtools")
-library(devtools)
-```
-Next install R package dependencies for *microTrait*:
+### GitHub install variant (using `remotes`, not `devtools`)
 
-*  [CRAN](https://cran.r-project.org/) package dependencies
+If you are installing from GitHub instead of from a local clone, use `remotes::install_github()` rather than `devtools`:
 
-	Missing dependencies available on [CRAN](https://cran.r-project.org/) can be installed as follows:
-
-	```{r tidy=TRUE}
-	list_of_packages = c("R.utils", "RColorBrewer", "ape", "assertthat", "checkmate",
-	 "coRdon", "corrplot", "doParallel", "dplyr", "futile.logger", "grid", "gtools", "kmed", "lazyeval", "magrittr", "parallel", "pheatmap", "readr", "stringr", "tibble", 
-	  "tictoc", "tidyr")
-	newpackages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
-	if(length(newpackages)) install.packages(newpackages)
-	```
-
-* [Bioconductor](https://www.bioconductor.org/) package dependencies
-
-	*microTrait* also depends on [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html), [coRdon](https://github.com/BioinfoHR/coRdon), and [ComplexHeatmap](https://www.bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html), which are [Bioconductor](https://bioconductor.org/) packages. To install them, run the following:
-
-	```{r tidy = FALSE}
-	if (!requireNamespace("BiocManager", quietly = TRUE))
-		install.packages("BiocManager")
-	BiocManager::install("Biostrings")
-	BiocManager::install("coRdon")
-	BiocManager::install("ComplexHeatmap")
-	```
-
-* Developmental package dependencies
-
-	*microTrait* uses [gRodon](https://github.com/jlw-ecoevo/gRodon) for estimation of maximum growth rates from genomic sequences. Install with [devtools](https://github.com/r-lib/devtools):
-
-	```{r tidy = FALSE}
-	devtools::install_github("jlw-ecoevo/gRodon")
-	```
-
-### 4. Installation of *microTrait*:
-
-Now install *microTrait* with [devtools](https://github.com/r-lib/devtools):
-
-```{r tidy = FALSE}
-devtools::install_github("b-tierney/microtrait")
+```bash
+R -q -e "options(repos = c(CRAN='https://cloud.r-project.org')); if (!requireNamespace('remotes', quietly = TRUE)) install.packages('remotes'); if (!requireNamespace('kmed', quietly = TRUE)) install.packages('kmed'); if (!requireNamespace('gRodon', quietly = TRUE)) remotes::install_github('jlw-ecoevo/gRodon'); remotes::install_github('b-tierney/microtrait'); microtrait::prep.hmmmodels()"
 ```
 
-### 5. <a name="setup"></a> Setup of HMM database:
-Due to its large size (~170M), **[microtrait-hmm](https://github.com/ukaraoz/microtrait-hmm)** isn't packaged with *microTrait*. After installation, **[microtrait-hmm](https://github.com/ukaraoz/microtrait-hmm)** database has to be downloaded and deployed.
+That keeps the install path on `remotes` end-to-end, without pulling in `devtools`.
 
-Load *microTrait*:
+### Verifying the install manually
 
-```{r tidy = FALSE}
-library(microtrait)
+If you want to verify the environment yourself after setup:
+
+```bash
+R -q -e "library(microtrait); genome_file <- system.file('extdata/genomic/2896171935.fna', package='microtrait'); result <- microtrait::extract.traits(genome_file, out_dir=tempdir(), growthrate_predict=FALSE, optimalT_predict=FALSE); print(result$rds_file)"
 ```
 
-*microTrait* includes a function (`prep.hmmmodels()`) that downloads and deploys hmm models that underlie *microTrait*. This function should be run once after the installation.
+### Notes
 
-```{r tidy = FALSE}
-microtrait::prep.hmmmodels()
-```
-The following HMM database files should now be available under `microtrait/extdata/hmm` in your default R library path (`.libPaths()`)
-
-```{r tidy = TRUE}
-list.files(file.path(.libPaths(), "microtrait/extdata/hmm/hmmpress"))
- [1] "arcbacribosomal.hmmdb.h3f" "arcbacribosomal.hmmdb.h3i"
- [3] "arcbacribosomal.hmmdb.h3m" "arcbacribosomal.hmmdb.h3p"
- [5] "dbcan.select.v8.hmmdb.h3f" "dbcan.select.v8.hmmdb.h3i"
- [7] "dbcan.select.v8.hmmdb.h3m" "dbcan.select.v8.hmmdb.h3p"
- [9] "microtrait.hmmdb.h3f"      "microtrait.hmmdb.h3i"     
-[11] "microtrait.hmmdb.h3m"      "microtrait.hmmdb.h3p"     
-```
+- Run `./scripts/setup_conda.sh` **after** activating the Conda environment.
+- The first run downloads the HMM databases, so it needs network access.
+- The legacy files under `conda-recipe/` are still useful for package-building, but the root `environment.yml` + `scripts/setup_conda.sh` flow is the recommended way to get a working development/runtime install.
 
 ## Usage
 ### Extracting traits from a genome sequence

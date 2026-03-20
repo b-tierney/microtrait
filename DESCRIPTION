@@ -14,6 +14,37 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends: R (>= 2.10)
+Imports:
+    Biostrings,
+    ComplexHeatmap,
+    R.utils,
+    RColorBrewer,
+    ape,
+    assertthat,
+    checkmate,
+    corrplot,
+    doParallel,
+    dplyr,
+    foreach,
+    fs,
+    futile.logger,
+    gRodon,
+    ggplot2,
+    gtools,
+    kmed,
+    lazyeval,
+    magrittr,
+    nlme,
+    pheatmap,
+    readr,
+    seqinr,
+    stringr,
+    tibble,
+    tictoc,
+    tidyr,
+    vegan
+Remotes:
+    jlw-ecoevo/gRodon
 NeedsCompilation: no
 Packaged: 2021-06-04 18:16:36 UTC; ukaraoz
 Author: Ulas Karaoz [aut, cre] (<https://orcid.org/0000-0002-8238-6757>)

@@ -32,3 +32,7 @@ Install them inside the created environment with R:
 R -q -e "install.packages('kmed', repos='https://cloud.r-project.org')"
 R -q -e "if (!requireNamespace('remotes', quietly = TRUE)) install.packages('remotes', repos='https://cloud.r-project.org'); remotes::install_github('jlw-ecoevo/gRodon')"
 ```
+
+### Notes on actual R dependencies
+- `seqinr` is a real runtime dependency and is included in the Conda environment because `extract.traits()` uses it for FASTA parsing and genome length calculation.
+- For GitHub-only installation steps, prefer `remotes::install_github(...)` instead of bringing in `devtools`.
