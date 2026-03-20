@@ -1,21 +1,77 @@
 #' Prepare dbcan database (download and subselect)
 #'
 #' @importFrom futile.logger flog.info
+download.from.sources <- function(urls, destfile) {
+  if (file.exists(destfile)) {
+    file.remove(destfile)
+  }
+
+  last_error <- NULL
+
+  for (url in urls) {
+    futile.logger::flog.info(sprintf("Attempting download from %s", url))
+
+    result <- tryCatch(
+      suppressWarnings({
+        utils::download.file(
+          url = url,
+          destfile = destfile,
+          method = "libcurl",
+          mode = "wb",
+          quiet = TRUE
+        )
+      }),
+      error = function(e) {
+        last_error <<- conditionMessage(e)
+        NULL
+      }
+    )
+
+    if (is.numeric(result) && identical(result, 0L) && file.exists(destfile) && file.size(destfile) > 0) {
+      return(destfile)
+    }
+
+    if (file.exists(destfile)) {
+      file.remove(destfile)
+    }
+  }
+
+  if (is.null(last_error)) {
+    last_error <- "unknown download error"
+  }
+
+  stop(sprintf(
+    "Failed to download required file from all configured sources. Last error: %s",
+    last_error
+  ))
+}
+
+#' @importFrom utils download.file
 download.dbcan <- function(dbcan_version = 8, dbcanhmmdb_selectids_file, dbcanhmmdb_file) {
   futile.logger::flog.info("Downloading dbcan hmm database")
 
-  dbcan_hmmdb_url <- paste("http://dbcan-hcc.unl.edu/download/Databases/dbCAN-HMMdb-V", dbcan_version, ".txt", sep = "")
+  dbcan_hmmdb_urls <- c(
+    paste0("https://bcb.unl.edu/dbCAN2/download/Databases/V", dbcan_version, "/dbCAN-HMMdb-V", dbcan_version, ".txt"),
+    paste0("https://bcb.unl.edu/dbCAN2/download/Databases/dbCAN-HMMdb-V", dbcan_version, ".txt"),
+    paste0("https://dbcan-hcc.unl.edu/download/Databases/V", dbcan_version, "/dbCAN-HMMdb-V", dbcan_version, ".txt"),
+    paste0("https://dbcan-hcc.unl.edu/download/Databases/dbCAN-HMMdb-V", dbcan_version, ".txt"),
+    "https://dbcan.s3.us-west-2.amazonaws.com/db_v5-2_9-13-2025/dbCAN_sub.hmm"
+  )
   downloaded_file <- file.path(tempdir(), paste0("dbcan.v", dbcan_version, ".txt"))
 
-  download.file(dbcan_hmmdb_url, downloaded_file, method = "curl", extra = "-k -L")
+  download.from.sources(dbcan_hmmdb_urls, downloaded_file)
 
   futile.logger::flog.info("Subsetting dbcan hmm database")
   if (available.external("hmmfetch")) {
-    system(paste(
-      "hmmfetch",
-      "-f", downloaded_file,
-      dbcanhmmdb_selectids_file, ">", dbcanhmmdb_file
-    ))
+    system2(
+      command = "hmmfetch",
+      args = c("-f", downloaded_file, dbcanhmmdb_selectids_file),
+      stdout = dbcanhmmdb_file
+    )
+  }
+
+  if (!file.exists(dbcanhmmdb_file) || file.size(dbcanhmmdb_file) == 0) {
+    stop("dbCAN HMM database download completed, but the filtered microtrait subset could not be created.")
   }
 }
 
@@ -25,10 +81,10 @@ download.dbcan <- function(dbcan_version = 8, dbcanhmmdb_selectids_file, dbcanhm
 download.arcbacribosomal <- function(arcbacribosomalhmmdb_file) {
   futile.logger::flog.info("Downloading PFAM hmm models for detection of ribosomal proteins")
 
-  arcbacribosomal_hmmdb_url <- "https://github.com/ukaraoz/microtrait-hmm/releases/download/latest/arcbacribosomal.hmmdb.gz"
-  download.file(arcbacribosomal_hmmdb_url,
-    destfile = arcbacribosomalhmmdb_file, method = "curl", extra = "-k -L"
+  arcbacribosomal_hmmdb_urls <- c(
+    "https://github.com/ukaraoz/microtrait-hmm/releases/download/latest/arcbacribosomal.hmmdb.gz"
   )
+  download.from.sources(arcbacribosomal_hmmdb_urls, arcbacribosomalhmmdb_file)
 
   arcbacribosomalhmmdb_unzippedfile <- R.utils::gunzip(arcbacribosomalhmmdb_file, remove = F, overwrite = T)
   return(arcbacribosomalhmmdb_unzippedfile[1])
@@ -46,10 +102,10 @@ download.microtrait <- function(microtraithmmdb_file) {
   #                       #repo = "ukaraoz/test",
   #                       dest = fs::path_dir(microtraithmmdb_file))
 
-  microtrait_hmmdb_url <- "https://github.com/ukaraoz/microtrait-hmm/releases/download/latest/microtrait.hmmdb.gz"
-  download.file(microtrait_hmmdb_url,
-    destfile = microtraithmmdb_file, method = "curl", extra = "-k -L"
+  microtrait_hmmdb_urls <- c(
+    "https://github.com/ukaraoz/microtrait-hmm/releases/download/latest/microtrait.hmmdb.gz"
   )
+  download.from.sources(microtrait_hmmdb_urls, microtraithmmdb_file)
 
   microtraithmmdb_unzippedfile <- R.utils::gunzip(microtraithmmdb_file, remove = F, overwrite = T)
   return(microtraithmmdb_unzippedfile[1])
