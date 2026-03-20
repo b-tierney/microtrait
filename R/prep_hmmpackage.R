@@ -6,6 +6,13 @@ download.from.sources <- function(urls, destfile) {
     file.remove(destfile)
   }
 
+  old_timeout <- getOption("timeout")
+  if (!is.numeric(old_timeout) || length(old_timeout) != 1L || is.na(old_timeout)) {
+    old_timeout <- 60
+  }
+  on.exit(options(timeout = old_timeout), add = TRUE)
+  options(timeout = max(3600, old_timeout))
+
   last_error <- NULL
 
   for (url in urls) {
@@ -50,14 +57,18 @@ download.from.sources <- function(urls, destfile) {
 download.dbcan <- function(dbcan_version = 8, dbcanhmmdb_selectids_file, dbcanhmmdb_file) {
   futile.logger::flog.info("Downloading dbcan hmm database")
 
+  # Primary: AWS mirror (same path as bcb-unl/run_dbcan dbcan/constants/databases_constants.py).
+  # microtrait uses hmmfetch with CAZy family accessions (e.g. GH1.hmm); need dbCAN.hmm, not dbCAN_sub.hmm.
+  aws_dbcan_hmm <- "https://dbcan.s3.us-west-2.amazonaws.com/db_v5-2_9-13-2025/dbCAN.hmm"
   dbcan_hmmdb_urls <- c(
+    aws_dbcan_hmm,
+    paste0("https://bcb.unl.edu/dbCAN2/download/run_dbCAN_database_total/db_current/dbCAN.hmm"),
     paste0("https://bcb.unl.edu/dbCAN2/download/Databases/V", dbcan_version, "/dbCAN-HMMdb-V", dbcan_version, ".txt"),
     paste0("https://bcb.unl.edu/dbCAN2/download/Databases/dbCAN-HMMdb-V", dbcan_version, ".txt"),
     paste0("https://dbcan-hcc.unl.edu/download/Databases/V", dbcan_version, "/dbCAN-HMMdb-V", dbcan_version, ".txt"),
-    paste0("https://dbcan-hcc.unl.edu/download/Databases/dbCAN-HMMdb-V", dbcan_version, ".txt"),
-    "https://dbcan.s3.us-west-2.amazonaws.com/db_v5-2_9-13-2025/dbCAN_sub.hmm"
+    paste0("https://dbcan-hcc.unl.edu/download/Databases/dbCAN-HMMdb-V", dbcan_version, ".txt")
   )
-  downloaded_file <- file.path(tempdir(), paste0("dbcan.v", dbcan_version, ".txt"))
+  downloaded_file <- file.path(tempdir(), paste0("dbcan.v", dbcan_version, ".hmmdb"))
 
   download.from.sources(dbcan_hmmdb_urls, downloaded_file)
 
@@ -82,6 +93,7 @@ download.arcbacribosomal <- function(arcbacribosomalhmmdb_file) {
   futile.logger::flog.info("Downloading PFAM hmm models for detection of ribosomal proteins")
 
   arcbacribosomal_hmmdb_urls <- c(
+    "https://github.com/ukaraoz/microtrait-hmm/releases/latest/download/arcbacribosomal.hmmdb.gz",
     "https://github.com/ukaraoz/microtrait-hmm/releases/download/latest/arcbacribosomal.hmmdb.gz"
   )
   download.from.sources(arcbacribosomal_hmmdb_urls, arcbacribosomalhmmdb_file)
@@ -103,6 +115,7 @@ download.microtrait <- function(microtraithmmdb_file) {
   #                       dest = fs::path_dir(microtraithmmdb_file))
 
   microtrait_hmmdb_urls <- c(
+    "https://github.com/ukaraoz/microtrait-hmm/releases/latest/download/microtrait.hmmdb.gz",
     "https://github.com/ukaraoz/microtrait-hmm/releases/download/latest/microtrait.hmmdb.gz"
   )
   download.from.sources(microtrait_hmmdb_urls, microtraithmmdb_file)

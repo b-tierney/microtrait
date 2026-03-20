@@ -66,7 +66,7 @@ R -q -e "library(microtrait); genome_file <- system.file('extdata/genomic/289617
 
 - Run `./scripts/setup_conda.sh` **after** activating the Conda environment.
 - The first run downloads the HMM databases, so it needs network access.
-- `microtrait::prep.hmmmodels()` now tries several dbCAN sources, including the official dbCAN paths and the dbCAN AWS mirror documented for current `run_dbcan` releases, to work around the legacy UNL certificate/download failures.
+- `microtrait::prep.hmmmodels()` downloads the **family-level** dbCAN HMM library (`dbCAN.hmm`) from the [run_dbcan AWS mirror](https://github.com/bcb-unl/run_dbcan/blob/master/dbcan/constants/databases_constants.py) first, then falls back to legacy UNL `dbCAN-HMMdb-V8` URLs when reachable (UNL often fails strict TLS or redirects).
 - The legacy files under `conda-recipe/` are still useful for package-building, but the root `environment.yml` + `scripts/setup_conda.sh` flow is the recommended way to get a working development/runtime install.
 
 ## Usage
